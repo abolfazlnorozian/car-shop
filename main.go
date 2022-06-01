@@ -47,6 +47,6 @@ func main() {
 	defer mongoclient.Disconnect(ctx)
 	basepath := server.Group("v1")
 	CarController.RegisterCarRoutes(basepath)
-	log.Fatal(server.Run(":8585"))
+	log.Fatal(server.Run(":3000"))
 
 }
