@@ -37,7 +37,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("mongo connection established")
+	fmt.Println("mongo connection established.")
 
 	mongocollection = mongoclient.Database("logindb").Collection("logins")
 	carservice = services.NewServiceImpl(mongocollection, ctx)
