@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"gologin/abolfazl-api/controllers"
-	"gologin/abolfazl-api/services"
-
+	"example.com/cars-api/controllers"
+	"example.com/cars-api/services"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,20 +14,18 @@ import (
 )
 
 var (
-	server         *gin.Engine
-	userservice    services.UserService
-	UserController controllers.UserController
-	ctx            context.Context
-	usercollection *mongo.Collection
-	mongoclient    *mongo.Client
-	err            error
+	server        *gin.Engine
+	carservice    services.CarService
+	CarController controllers.CarController
+	ctx           context.Context
+	carcollection *mongo.Collection
+	mongoclient   *mongo.Client
+	err           error
 )
 
 func init() {
 	ctx = context.TODO()
-
 	mongoconn := options.Client().ApplyURI("mongodb://localhost:27017")
-
 	mongoclient, err := mongo.Connect(ctx, mongoconn)
 	if err != nil {
 		log.Fatal(err)
@@ -37,18 +34,19 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("mongo connection established")
-	usercollection = mongoclient.Database("logindb").Collection("logins")
-	userservice = services.NewUserServiceImpl(usercollection, ctx)
-	UserController = controllers.New(userservice)
+	fmt.Println("mongo connect established")
+	carcollection = mongoclient.Database("cardb").Collection("cras")
+	carservice = services.NewCarService(carcollection, ctx)
+	CarController = controllers.New(carservice)
 	server = gin.Default()
+
 }
 
 func main() {
 
 	defer mongoclient.Disconnect(ctx)
 	basepath := server.Group("v1")
-	UserController.RegisterUserRoutes(basepath)
-	log.Fatal(server.Run(":9595"))
+	CarController.RegisterCarRoutes(basepath)
+	log.Fatal(server.Run(":3000"))
 
 }
