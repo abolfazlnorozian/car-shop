@@ -1,8 +1,10 @@
 package services
 
-import "example.com/cars-api/models"
+import "gologin/abolfazl-api/models"
 
-type CarService interface {
+type CarShopService interface {
+	CreateUser(*models.User) error
+	LoginUser(*models.User) error
 	CreateCar(*models.Car) error
 	GetCar(*string) (*models.Car, error)
 	GetAll() ([]*models.Car, error)

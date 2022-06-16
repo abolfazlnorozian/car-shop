@@ -3,39 +3,40 @@ package services
 import (
 	"context"
 	"errors"
+	"gologin/abolfazl-api/models"
 
-	"example.com/cars-api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type CarServiceImpl struct {
-	carcollection *mongo.Collection
-	ctx           context.Context
+type ServiceImpl struct {
+	mongocollection *mongo.Collection
+	ctx             context.Context
 }
 
-func NewCarService(carcollection *mongo.Collection, ctx context.Context) CarService {
-	return &CarServiceImpl{
-		carcollection: carcollection,
-		ctx:           ctx,
+func NewServiceImpl(carcollection *mongo.Collection, ctx context.Context) CarShopService {
+	return &ServiceImpl{
+		mongocollection: carcollection,
+		ctx:             ctx,
 	}
 
 }
-func (c *CarServiceImpl) CreateCar(car *models.Car) error {
-	_, err := c.carcollection.InsertOne(c.ctx, car)
+
+func (c *ServiceImpl) CreateCar(car *models.Car) error {
+	_, err := c.mongocollection.InsertOne(c.ctx, car)
 	return err
 
 }
-func (c *CarServiceImpl) GetCar(name *string) (*models.Car, error) {
+func (c *ServiceImpl) GetCar(name *string) (*models.Car, error) {
 	var car *models.Car
 	query := bson.D{bson.E{Key: "name", Value: name}}
-	err := c.carcollection.FindOne(c.ctx, query).Decode(&car)
+	err := c.mongocollection.FindOne(c.ctx, query).Decode(&car)
 	return car, err
 
 }
-func (c *CarServiceImpl) GetAll() ([]*models.Car, error) {
+func (c *ServiceImpl) GetAll() ([]*models.Car, error) {
 	var cars []*models.Car
-	cursor, err := c.carcollection.Find(c.ctx, bson.D{{}})
+	cursor, err := c.mongocollection.Find(c.ctx, bson.D{{}})
 	if err != nil {
 		return nil, err
 	}
@@ -61,22 +62,34 @@ func (c *CarServiceImpl) GetAll() ([]*models.Car, error) {
 	return cars, nil
 
 }
-func (c *CarServiceImpl) UpdateCar(car *models.Car) error {
+func (c *ServiceImpl) UpdateCar(car *models.Car) error {
 	filter := bson.D{bson.E{Key: "car_name", Value: car.Name}}
 	update := bson.D{bson.E{Key: "$set", Value: bson.D{bson.E{Key: "car_id", Value: car.ID}, bson.E{Key: "car_name", Value: car.Name}, bson.E{Key: "car_color", Value: car.Color}, bson.E{Key: "car_model", Value: car.Model}, bson.E{Key: "car_price", Value: car.Price}, bson.E{Key: "car_insurance", Value: car.Insurance}, bson.E{Key: "car_count", Value: car.Count}}}}
-	result, _ := c.carcollection.UpdateOne(c.ctx, filter, update)
+	result, _ := c.mongocollection.UpdateOne(c.ctx, filter, update)
 	if result.MatchedCount != 1 {
 		return errors.New("no match document found for update")
 	}
 	return nil
 
 }
-func (c *CarServiceImpl) DeleteCar(name *string) error {
+func (c *ServiceImpl) DeleteCar(name *string) error {
 	filter := bson.D{bson.E{Key: "car_name", Value: name}}
-	result, _ := c.carcollection.DeleteOne(c.ctx, filter)
+	result, _ := c.mongocollection.DeleteOne(c.ctx, filter)
 	if result.DeletedCount != 1 {
 		return errors.New("no match document found for update")
 	}
 	return nil
+
+}
+func (u *ServiceImpl) CreateUser(user *models.User) error {
+	_, err := u.mongocollection.InsertOne(u.ctx, user)
+	return err
+
+}
+func (u *ServiceImpl) LoginUser(user *models.User) error {
+
+	err := u.mongocollection.FindOne(u.ctx, bson.D{bson.E{Key: "user_email", Value: &user.Email}, bson.E{Key: "user_password", Value: user.Password}}).Decode(&user)
+
+	return err
 
 }
