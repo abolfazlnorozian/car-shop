@@ -123,7 +123,7 @@ func (uc *LogController) RegisterUserRoutes(rg *gin.RouterGroup) {
 	userroute := rg.Group("/user")
 	userroute.POST("/createCar", uc.CreateCar)
 	userroute.GET("/getCar/:name", uc.GetCar)
-	userroute.GET("/getAll", uc.GetAll)
+	userroute.GET("/all", uc.GetAll)
 	userroute.PATCH("/updateCar", uc.UpdateCar)
 	userroute.DELETE("/deleteCar/:name", uc.DeleteCar)
 	userroute.POST("/register", uc.RegistrUser)
