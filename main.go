@@ -51,6 +51,6 @@ func main() {
 	defer mongoclient.Disconnect(ctx)
 	basepath := server.Group("v1")
 	LogController.RegisterUserRoutes(basepath)
-	log.Fatal(server.Run(":9595"))
+	log.Fatal(server.Run(":3000"))
 
 }
