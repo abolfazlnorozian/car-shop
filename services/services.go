@@ -17,3 +17,6 @@ type Admins interface {
 	CreateAdmin(*models.Admin) error
 	LoginAdmin(*models.Admin) error
 }
+type Download interface {
+	DownloadFile(*string) error
+}

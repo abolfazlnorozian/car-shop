@@ -69,6 +69,7 @@ func init() {
 	admincontroller = controllers.NewAdminService(adminservice)
 
 	server = gin.Default()
+	server.MaxMultipartMemory = 8 << 20
 }
 
 func main() {
