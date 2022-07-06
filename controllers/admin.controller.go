@@ -103,11 +103,9 @@ func (uc *AdminControllers) AdminRoutes(rg *gin.RouterGroup) {
 
 	adminroute.POST("/register", uc.RegistrAdmin)
 	adminroute.POST("/login", uc.LoginAdmin)
-	// adminroute.GET("/serve", uc.DownloadImages)
-	// adminroute.StaticFile("/download", "./content/pride.jpg")
 
 	adminroute.Static("/download", "./content")
-	// adminroute.POST("/upload", uc.Uploadpath)
+
 	adminroute.POST("/upload", uc.Uploadpath)
 
 }
