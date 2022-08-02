@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 
 	"gologin/abolfazl-api/models"
@@ -41,7 +40,7 @@ func (uc *UserController) Authenticate(c *gin.Context) {
 		return
 	}
 	//claims tamami etelaate dorosti ke ma migirim hastan
-	claims, err := uc.UserService.ValidateToken(clientToken) //token haei ke ok hastan baraye userha
+	claims, err := services.ValidateToken(clientToken) //token haei ke ok hastan baraye userha
 	if err != "" {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		c.Abort()
@@ -62,17 +61,6 @@ func HashPassword(password string) string {
 		log.Panic(err)
 	}
 	return string(bytes)
-
-}
-func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
-	err := bcrypt.CompareHashAndPassword([]byte(providedPassword), []byte(userPassword))
-	check := true
-	msg := ""
-	if err != nil {
-		msg = fmt.Sprintf("email or password is incorrect")
-		check = false
-	}
-	return check, msg
 
 }
 
@@ -97,7 +85,7 @@ func (uc *UserController) RegistrUser(ctx *gin.Context) {
 
 	user.ID = primitive.NewObjectID()
 	user.User_id = user.ID.Hex()
-	token, refreshToken, err := uc.UserService.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id) //token ra ersal konim barye user
+	token, refreshToken, err := services.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id) //token ra ersal konim barye user
 	user.Token = &token
 	user.Refresh_token = &refreshToken
 
@@ -111,37 +99,30 @@ func (uc *UserController) RegistrUser(ctx *gin.Context) {
 }
 
 func (uc *UserController) LoginUser(ctx *gin.Context) {
-	var _, cancle = context.WithTimeout(context.Background(), 100*time.Second)
+	//var _, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 
 	var user models.User
 	var foundUser models.User
-	defer cancle()
 
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
 
 	}
 
-	passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
-	defer cancle()
+	// err := uc.UserService.LoginUser(&user)
+	// if err != nil {
+	// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "this email not exist"})
+	// 	return
 
-	if passwordIsValid != true {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-		return
-	}
-	if user.Email == nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "user not found "})
-		return
-	}
+	// }
 
-	token, refreshToken, _ := uc.UserService.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
-	uc.UserService.UpdateAllTokens(token, refreshToken, foundUser.User_id)
-	err := uc.UserService.LoginUser(&foundUser)
+	err := uc.UserService.LoginUser(&user)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "this user_id not exist"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "this email not exist"})
 		return
 
 	}
+
 	ctx.JSON(http.StatusOK, foundUser)
 
 	// ctx.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{
@@ -152,7 +133,7 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 
 }
 
-func (uc *UserController) UserRoutes(rg *gin.RouterGroup) {
+func (uc UserController) UserRoutes(rg *gin.RouterGroup) {
 	userroute := rg.Group("/user")
 
 	userroute.POST("/register", uc.RegistrUser)

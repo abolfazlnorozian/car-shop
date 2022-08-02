@@ -1,6 +1,8 @@
 package services
 
-import "gologin/abolfazl-api/models"
+import (
+	"gologin/abolfazl-api/models"
+)
 
 type Products interface {
 	CreateCar(*models.Car) error
@@ -12,8 +14,8 @@ type Products interface {
 type UserLogin interface {
 	CreateUser(*models.User) error
 	LoginUser(*models.User) error
-	GenerateAllTokens(email string, firstName string, lastName string, userType string, uid string) (signedToken string, signedRefreshToken string, err error)
-	ValidateToken(signedToken string) (claims *SignedDetails, msg string)
+	// GenerateAllTokens(email string, firstName string, lastName string, userType string, uid string) (signedToken string, signedRefreshToken string, err error)
+	// ValidateToken(signedToken string) (claims *SignedDetails, msg string)
 	UpdateAllTokens(signedToken string, signedRefreshToken string, userId string)
 }
 type Admins interface {

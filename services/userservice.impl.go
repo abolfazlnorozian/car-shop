@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceImpl struct {
@@ -39,7 +40,20 @@ type SignedDetails struct {
 
 var SECRET_KEY string = os.Getenv("SECRET_KEY")
 
-func (uc *UserServiceImpl) GenerateAllTokens(email string, firstName string, lastName string, userType string, uid string) (signedToken string, signedRefreshToken string, err error) {
+func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
+
+	err := bcrypt.CompareHashAndPassword([]byte(providedPassword), []byte(userPassword))
+	check := true
+	msg := ""
+	if err != nil {
+		msg = fmt.Sprintf("email or password is incorrect")
+		check = false
+	}
+	return check, msg
+
+}
+
+func GenerateAllTokens(email string, firstName string, lastName string, userType string, uid string) (signedToken string, signedRefreshToken string, err error) {
 
 	claims := &SignedDetails{
 		Email:      email,
@@ -66,7 +80,7 @@ func (uc *UserServiceImpl) GenerateAllTokens(email string, firstName string, las
 
 	return token, refreshToken, err
 }
-func (uc *UserServiceImpl) ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
+func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
 	token, err := jwt.ParseWithClaims(
 		signedToken,
 		&SignedDetails{},
@@ -93,6 +107,7 @@ func (uc *UserServiceImpl) ValidateToken(signedToken string) (claims *SignedDeta
 	return claims, msg
 
 }
+
 func (uc *UserServiceImpl) UpdateAllTokens(signedToken string, signedRefreshToken string, userId string) {
 
 	var ctx, cancle = context.WithTimeout(context.Background(), 100*time.Second)
@@ -147,23 +162,32 @@ func (u *UserServiceImpl) CreateUser(user *models.User) error {
 
 }
 func (u *UserServiceImpl) LoginUser(user *models.User) error {
-	// var _, cancle = context.WithTimeout(context.Background(), 100*time.Second)
-	//var foundUser models.User
-
-	// err := u.shopcollection.FindOne(u.ctx, bson.M{"email": user.Email}).Decode(&foundUser)
+	// var ctx, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 	// defer cancle()
-	// if err != nil {
 
-	// 	return err
-	// }
+	var foundUser *models.User
+	err := u.shopcollection.FindOne(u.ctx, bson.M{"email": &user.Email}).Decode(&foundUser)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	// err = u.shopcollection.FindOne(u.ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
-	// if err != nil {
+	token, refreshToken, _ := GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
+	u.UpdateAllTokens(token, refreshToken, foundUser.User_id)
 
-	// 	return err
-	// }
+	passwordIsValid, msg := VerifyPassword(*user.Password, *user.Password)
 
-	err := u.shopcollection.FindOne(u.ctx, bson.D{bson.E{Key: "email", Value: &user.Email}, bson.E{Key: "user_id", Value: &user.User_id}}).Decode(&user)
+	if passwordIsValid != true {
+		fmt.Println(msg)
+
+	}
+	if user.Email == nil {
+		fmt.Println("user not found")
+
+	}
+
+	err = u.shopcollection.FindOne(u.ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
+
+	// err := u.shopcollection.FindOne(u.ctx, bson.D{bson.E{Key: "email", Value: &user.Email}, bson.E{Key: "user_id", Value: foundUser.User_id}}).Decode(&foundUser)
 
 	return err
 
