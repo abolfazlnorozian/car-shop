@@ -165,14 +165,14 @@ func (u *UserServiceImpl) LoginUser(user *models.User) error {
 	// var ctx, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 	// defer cancle()
 
-	var foundUser *models.User
-	err := u.shopcollection.FindOne(u.ctx, bson.M{"email": &user.Email}).Decode(&foundUser)
+	//var foundUser *models.User
+	err := u.shopcollection.FindOne(u.ctx, bson.M{"email": &user.Email}).Decode(&user)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
 	}
 
-	token, refreshToken, _ := GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
-	u.UpdateAllTokens(token, refreshToken, foundUser.User_id)
+	token, refreshToken, _ := GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id)
+	u.UpdateAllTokens(token, refreshToken, user.User_id)
 
 	passwordIsValid, msg := VerifyPassword(*user.Password, *user.Password)
 
@@ -185,7 +185,7 @@ func (u *UserServiceImpl) LoginUser(user *models.User) error {
 
 	}
 
-	err = u.shopcollection.FindOne(u.ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
+	err = u.shopcollection.FindOne(u.ctx, bson.M{"user_id": user.User_id}).Decode(&user)
 
 	// err := u.shopcollection.FindOne(u.ctx, bson.D{bson.E{Key: "email", Value: &user.Email}, bson.E{Key: "user_id", Value: foundUser.User_id}}).Decode(&foundUser)
 

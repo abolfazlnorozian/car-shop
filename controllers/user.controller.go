@@ -102,7 +102,7 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 	//var _, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 
 	var user models.User
-	var foundUser models.User
+	//var foundUser models.User
 
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
@@ -123,7 +123,7 @@ func (uc *UserController) LoginUser(ctx *gin.Context) {
 
 	}
 
-	ctx.JSON(http.StatusOK, foundUser)
+	ctx.JSON(http.StatusOK, user)
 
 	// ctx.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{
 	// 	"token":         foundUser.Token,
