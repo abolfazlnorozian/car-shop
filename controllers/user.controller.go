@@ -2,58 +2,31 @@ package controllers
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"gologin/abolfazl-api/models"
 	"gologin/abolfazl-api/services"
-	"log"
+
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// type UserLogin struct {
-// 	Email string `json:"email" bson:"user_email"`
-// }
-
-type UserController struct {
+type Controller struct {
 	UserService services.UserLogin
 }
 
-func NewUserService(userservice services.UserLogin) UserController {
-	return UserController{
+func NewUserService(userservice services.UserLogin) Controller {
+	return Controller{
 		UserService: userservice,
 	}
 }
 
 var validate = validator.New()
-
-func (uc *UserController) Authenticate(c *gin.Context) {
-
-	clientToken := c.Request.Header.Get("token")
-	if clientToken == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("no Authorization header provided")})
-		c.Abort() //baraye amniat
-		return
-	}
-	//claims tamami etelaate dorosti ke ma migirim hastan
-	claims, err := services.ValidateToken(clientToken) //token haei ke ok hastan baraye userha
-	if err != "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-		c.Abort()
-		return
-	}
-	c.Set("email", claims.Email)
-	c.Set("first_name", claims.First_name)
-	c.Set("last_name", claims.Last_name)
-	c.Set("uid", claims.Uid)
-	c.Set("user_type", claims.User_type)
-	c.Next()
-
-}
 
 func HashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -64,7 +37,7 @@ func HashPassword(password string) string {
 
 }
 
-func (uc *UserController) RegistrUser(ctx *gin.Context) {
+func (uc *Controller) RegistrUser(ctx *gin.Context) {
 
 	var user models.User
 
@@ -75,8 +48,9 @@ func (uc *UserController) RegistrUser(ctx *gin.Context) {
 	}
 	validationErr := validate.Struct(user) //errorha ra be kharej hedayat mikonad
 	if validationErr != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-		return
+		// ctx.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+		// return
+		fmt.Println(validationErr)
 	}
 	password := HashPassword(*user.Password)
 	user.Password = &password
@@ -98,42 +72,39 @@ func (uc *UserController) RegistrUser(ctx *gin.Context) {
 
 }
 
-func (uc *UserController) LoginUser(ctx *gin.Context) {
+func (uc *Controller) LoginUser(ctx *gin.Context) {
 	//var _, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 
+	// var foundUser models.User
 	var user models.User
-	//var foundUser models.User
 
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
 
-	}
-
-	// err := uc.UserService.LoginUser(&user)
-	// if err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "this email not exist"})
-	// 	return
-
-	// }
-
-	err := uc.UserService.LoginUser(&user)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "this email not exist"})
 		return
 
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	foundUser, err := uc.UserService.LoginUser(&user)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "this email or password is incorrect"})
+		fmt.Println(err)
+		// fmt.Println(foundUser)
+		return
 
-	// ctx.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{
-	// 	"token":         foundUser.Token,
-	// 	"refresh_token": foundUser.Refresh_token,
-	// 	"message":       "return successfully",
-	// }})
+	}
+
+	ctx.JSON(http.StatusOK, foundUser)
+
+	// 	ctx.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{
+	// 		"token":         foundUser.Token,
+	// 		"refresh_token": foundUser.Refresh_token,
+	// 		"message":       "return successfully",
+	// 	}})
 
 }
 
-func (uc UserController) UserRoutes(rg *gin.RouterGroup) {
+func (uc *Controller) UserRoutes(rg *gin.RouterGroup) {
 	userroute := rg.Group("/user")
 
 	userroute.POST("/register", uc.RegistrUser)

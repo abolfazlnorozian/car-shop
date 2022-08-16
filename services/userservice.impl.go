@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+
 	"gologin/abolfazl-api/models"
 	"log"
 	"os"
@@ -40,21 +41,7 @@ type SignedDetails struct {
 
 var SECRET_KEY string = os.Getenv("SECRET_KEY")
 
-func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
-
-	err := bcrypt.CompareHashAndPassword([]byte(providedPassword), []byte(userPassword))
-	check := true
-	msg := ""
-	if err != nil {
-		msg = fmt.Sprintf("email or password is incorrect")
-		check = false
-	}
-	return check, msg
-
-}
-
 func GenerateAllTokens(email string, firstName string, lastName string, userType string, uid string) (signedToken string, signedRefreshToken string, err error) {
-
 	claims := &SignedDetails{
 		Email:      email,
 		First_name: firstName,
@@ -107,12 +94,9 @@ func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
 	return claims, msg
 
 }
-
 func (uc *UserServiceImpl) UpdateAllTokens(signedToken string, signedRefreshToken string, userId string) {
-
 	var ctx, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 	var updateObj primitive.D
-
 	//append token and refreshtoken in update object
 	updateObj = append(updateObj, bson.E{Key: "token", Value: signedToken})
 	updateObj = append(updateObj, bson.E{Key: "refresh_token", Value: signedRefreshToken})
@@ -139,15 +123,26 @@ func (uc *UserServiceImpl) UpdateAllTokens(signedToken string, signedRefreshToke
 	return
 
 }
+func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
+	err := bcrypt.CompareHashAndPassword([]byte(providedPassword), []byte(userPassword))
+	check := true
+	msg := ""
+	if err != nil {
+		msg = fmt.Sprintf("email of password is incorrect")
+		check = false
+	}
+	return check, msg
 
-func (u *UserServiceImpl) CreateUser(user *models.User) error {
-	count, err := u.shopcollection.CountDocuments(u.ctx, bson.M{"email": user.Email})
+}
+
+func (uc *UserServiceImpl) CreateUser(user *models.User) error {
+	count, err := uc.shopcollection.CountDocuments(uc.ctx, bson.M{"email": user.Email})
 
 	if err != nil {
 		log.Panic(err)
 
 	}
-	count, err = u.shopcollection.CountDocuments(u.ctx, bson.M{"phone": user.Phone})
+	count, err = uc.shopcollection.CountDocuments(uc.ctx, bson.M{"phone": user.Phone})
 
 	if err != nil {
 		log.Panic(err)
@@ -157,40 +152,42 @@ func (u *UserServiceImpl) CreateUser(user *models.User) error {
 		log.Fatal(err)
 	}
 
-	_, err = u.shopcollection.InsertOne(u.ctx, user)
+	_, err = uc.shopcollection.InsertOne(uc.ctx, user)
 	return err
 
 }
-func (u *UserServiceImpl) LoginUser(user *models.User) error {
-	// var ctx, cancle = context.WithTimeout(context.Background(), 100*time.Second)
-	// defer cancle()
+func (uc *UserServiceImpl) LoginUser(user *models.User) (*models.User, error) {
 
-	//var foundUser *models.User
-	err := u.shopcollection.FindOne(u.ctx, bson.M{"email": &user.Email}).Decode(&user)
+	var foundUser *models.User
+
+	err := uc.shopcollection.FindOne(uc.ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	token, refreshToken, _ := GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id)
-	u.UpdateAllTokens(token, refreshToken, user.User_id)
-
-	passwordIsValid, msg := VerifyPassword(*user.Password, *user.Password)
+	passwordIsValid, _ := VerifyPassword(*user.Password, *foundUser.Password)
+	err = uc.shopcollection.FindOne(uc.ctx, bson.M{"password": user.Password}).Decode(&foundUser)
 
 	if passwordIsValid != true {
-		fmt.Println(msg)
+
+		return nil, err
 
 	}
-	if user.Email == nil {
+	if foundUser.Email == nil {
+
 		fmt.Println("user not found")
+		return nil, err
 
 	}
+	token, refreshToken, err := GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
+	uc.UpdateAllTokens(token, refreshToken, foundUser.User_id)
+	err = uc.shopcollection.FindOne(uc.ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
 
-	err = u.shopcollection.FindOne(u.ctx, bson.M{"user_id": user.User_id}).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
 
-	// err := u.shopcollection.FindOne(u.ctx, bson.D{bson.E{Key: "email", Value: &user.Email}, bson.E{Key: "user_id", Value: foundUser.User_id}}).Decode(&foundUser)
-
-	return err
-
+	return foundUser, err
 }
 
 //********************************ADMIN*************************************************

@@ -22,7 +22,7 @@ var (
 	productservice services.Products
 	adminservice   services.Admins
 
-	usercontroller    controllers.UserController
+	controller        controllers.Controller
 	productcontroller controllers.ProductController
 	admincontroller   controllers.AdminControllers
 
@@ -64,7 +64,7 @@ func init() {
 	productservice = services.NewProductServiceImpl(productcollection, ctx)
 	adminservice = services.NewAdminServiceImpl(admincollection, ctx)
 
-	usercontroller = controllers.NewUserService(userservice)
+	controller = controllers.NewUserService(userservice)
 	productcontroller = controllers.NewProductService(productservice)
 	admincontroller = controllers.NewAdminService(adminservice)
 
@@ -76,7 +76,8 @@ func main() {
 
 	defer mongoclient.Disconnect(ctx)
 	basepath := server.Group("v1")
-	usercontroller.UserRoutes(basepath)
+	controller.UserRoutes(basepath)
+
 	productcontroller.ProductRoutes(basepath)
 	admincontroller.AdminRoutes(basepath)
 
