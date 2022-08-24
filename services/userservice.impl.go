@@ -94,6 +94,7 @@ func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
 	return claims, msg
 
 }
+
 func (uc *UserServiceImpl) UpdateAllTokens(signedToken string, signedRefreshToken string, userId string) {
 	var ctx, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 	var updateObj primitive.D
