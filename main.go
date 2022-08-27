@@ -21,18 +21,22 @@ var (
 	userservice    services.UserLogin
 	productservice services.Products
 	adminservice   services.Admins
+	migrateservice services.Migrations
 
 	controller        controllers.Controller
 	productcontroller controllers.ProductController
 	admincontroller   controllers.AdminControllers
+	migratecontroller controllers.MigrateController
 
 	ctx               context.Context
 	usercollection    *mongo.Collection
 	productcollection *mongo.Collection
 	admincollection   *mongo.Collection
 	brandcollection   *mongo.Collection
-	mongoclient       *mongo.Client
-	err               error
+	migratecollection *mongo.Collection
+
+	mongoclient *mongo.Client
+	err         error
 )
 
 // type E struct {
@@ -59,14 +63,17 @@ func init() {
 	usercollection = mongoclient.Database("logindb").Collection("users")
 	admincollection = mongoclient.Database("logindb").Collection("admins")
 	brandcollection = mongoclient.Database("logindb").Collection("brands")
+	migratecollection = mongoclient.Database("logindb").Collection("products")
 
 	userservice = services.NewUserServiceImpl(usercollection, ctx)
 	productservice = services.NewProductServiceImpl(productcollection, ctx)
 	adminservice = services.NewAdminServiceImpl(admincollection, ctx)
+	migrateservice = services.NewMigrationServiceImpl(migratecollection, ctx)
 
 	controller = controllers.NewUserService(userservice)
 	productcontroller = controllers.NewProductService(productservice)
 	admincontroller = controllers.NewAdminService(adminservice)
+	migratecontroller = controllers.NewMigrateService(migrateservice)
 
 	server = gin.Default()
 	server.MaxMultipartMemory = 8 << 20

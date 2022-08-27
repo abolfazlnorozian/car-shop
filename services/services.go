@@ -11,6 +11,9 @@ type Products interface {
 	UpdateCar(*models.Car) error
 	DeleteCar(*string) error
 }
+type Migrations interface {
+	Migrations()
+}
 type UserLogin interface {
 	CreateUser(*models.User) error
 	LoginUser(*models.User) (*models.User, error)
