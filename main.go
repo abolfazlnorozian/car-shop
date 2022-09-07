@@ -31,8 +31,9 @@ var (
 	productcollection *mongo.Collection
 	admincollection   *mongo.Collection
 	brandcollection   *mongo.Collection
-	mongoclient       *mongo.Client
-	err               error
+
+	mongoclient *mongo.Client
+	err         error
 )
 
 // type E struct {

@@ -24,6 +24,7 @@ func NewProductServiceImpl(shopcollection *mongo.Collection, ctx context.Context
 
 func (c *ProductServiceImpl) CreateCar(car *models.Car) error {
 	_, err := c.shopcollection.InsertOne(c.ctx, car)
+
 	return err
 
 }
