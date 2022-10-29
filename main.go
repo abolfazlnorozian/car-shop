@@ -35,11 +35,6 @@ var (
 	err               error
 )
 
-// type E struct {
-// 	Key   string
-// 	Value interface{}
-// }
-
 func init() {
 	ctx = context.TODO()
 
@@ -65,7 +60,7 @@ func init() {
 	adminservice = services.NewAdminServiceImpl(admincollection, ctx)
 
 	controller = controllers.NewUserService(userservice)
-	productcontroller = controllers.NewProductService(productservice)
+	productcontroller = controllers.NewProductService(productservice, userservice)
 	admincontroller = controllers.NewAdminService(adminservice)
 
 	server = gin.Default()

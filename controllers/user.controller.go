@@ -72,7 +72,6 @@ func (uc *Controller) RegistrUser(ctx *gin.Context) {
 }
 
 func (uc *Controller) LoginUser(ctx *gin.Context) {
-	//var _, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 
 	// var foundUser models.User
 	var user models.User
@@ -88,7 +87,7 @@ func (uc *Controller) LoginUser(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "this email or password is incorrect"})
 		fmt.Println(err)
-		// fmt.Println(foundUser)
+
 		return
 
 	}

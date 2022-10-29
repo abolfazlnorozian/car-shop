@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gologin/abolfazl-api/middleware"
 	"gologin/abolfazl-api/models"
 	"gologin/abolfazl-api/services"
 	"net/http"
@@ -10,18 +11,28 @@ import (
 
 type ProductController struct {
 	ProductService services.Products
+	UserService    services.UserLogin
 }
 
-func NewProductService(productservice services.Products) ProductController {
+func NewProductService(productservice services.Products, UserService services.UserLogin) ProductController {
 	return ProductController{
 		ProductService: productservice,
+		UserService:    UserService,
 	}
 
 }
+
 func (uc *ProductController) CreateCar(ctx *gin.Context) {
+
 	var car models.Car
+
 	if err := ctx.ShouldBindJSON(&car); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"massage": err.Error()})
+		return
+
+	}
+	if err := middleware.CheckUserType(ctx, "ADMIN"); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 
 	}
@@ -79,6 +90,7 @@ func (uc *ProductController) DeleteCar(ctx *gin.Context) {
 }
 func (uc *ProductController) ProductRoutes(cg *gin.RouterGroup) {
 	carroute := cg.Group("/car")
+	carroute.Use(middleware.Authenticate())
 	carroute.POST("/createCar", uc.CreateCar)
 	carroute.GET("/getCar/:name", uc.GetCar)
 	carroute.GET("/all", uc.GetAll)
