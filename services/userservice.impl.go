@@ -190,5 +190,3 @@ func (uc *UserServiceImpl) LoginUser(user *models.User) (*models.User, error) {
 
 	return foundUser, err
 }
-
-//********************************ADMIN*************************************************

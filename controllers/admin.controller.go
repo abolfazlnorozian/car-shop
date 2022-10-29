@@ -34,11 +34,6 @@ func (uc *AdminControllers) Uploadpath(ctx *gin.Context) {
 		return
 	}
 	filename := header.Filename
-	// if Header.filename("Content-Type") != "image/*" {
-
-	// 		ctx.String(500, " Can only upload image file ")
-	// 		return
-	// 	}
 
 	out, err := os.Create("content/" + filename)
 	if err != nil {

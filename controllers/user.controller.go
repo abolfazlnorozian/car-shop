@@ -56,7 +56,6 @@ func (uc *Controller) RegistrUser(ctx *gin.Context) {
 	user.Password = &password
 	user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-
 	user.ID = primitive.NewObjectID()
 	user.User_id = user.ID.Hex()
 	token, refreshToken, err := services.GenerateAllTokens(*user.Email, *user.First_name, *user.Last_name, *user.User_type, user.User_id) //token ra ersal konim barye user
@@ -73,7 +72,6 @@ func (uc *Controller) RegistrUser(ctx *gin.Context) {
 }
 
 func (uc *Controller) LoginUser(ctx *gin.Context) {
-	//var _, cancle = context.WithTimeout(context.Background(), 100*time.Second)
 
 	// var foundUser models.User
 	var user models.User
@@ -89,7 +87,7 @@ func (uc *Controller) LoginUser(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "this email or password is incorrect"})
 		fmt.Println(err)
-		// fmt.Println(foundUser)
+
 		return
 
 	}
