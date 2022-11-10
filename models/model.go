@@ -7,18 +7,18 @@ import (
 )
 
 type User struct {
-	ID            primitive.ObjectID `bson:"_id"`
-	First_name    *string            `json:"first_name" validate:"required,min=2,max=100"`
-	Last_name     *string            `json:"last_name" validate:"required,min=2,max=100"`
-	Password      *string            `json:"password" validate:"required,min=6"`
-	Email         *string            `json:"email" validate:"email,required"`
-	Phone         *string            `json:"phone" validate:"required"`
-	Token         *string            `json:"token"`
-	User_type     *string            `json:"user_type" validate:"required,eq=ADMIN"`
-	Refresh_token *string            `json:"refresh_token"`
-	Created_at    time.Time          `json:"created_at"`
-	Updated_at    time.Time          `json:"updated_at"`
-	User_id       string             `json:"user_id"`
+	ID           primitive.ObjectID `bson:"_id"`
+	FirstName    *string            `json:"firstname" validate:"required,min=2,max=100"`
+	LastName     *string            `json:"lastname" validate:"required,min=2,max=100"`
+	Password     *string            `json:"password" validate:"required,min=6"`
+	Email        *string            `json:"email" validate:"email,required"`
+	Phone        *string            `json:"phone" validate:"required"`
+	Token        *string            `json:"token"`
+	UserType     *string            `json:"usertype" validate:"required,eq=ADMIN"`
+	RefreshToken *string            `json:"refreshtoken"`
+	CreatedAt    time.Time          `json:"createdat"`
+	UpdatedAt    time.Time          `json:"updatedat"`
+	UserId       string             `json:"userid"`
 }
 type Car struct {
 	ID        int    `json:"id"  bson:"car_id"`
