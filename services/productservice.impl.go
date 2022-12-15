@@ -10,13 +10,13 @@ import (
 )
 
 type ProductServiceImpl struct {
-	shopcollection *mongo.Collection
+	ShopCollection *mongo.Collection
 	ctx            context.Context
 }
 
-func NewProductServiceImpl(shopcollection *mongo.Collection, ctx context.Context) Products {
+func NewProductServiceImpl(shopCollection *mongo.Collection, ctx context.Context) Products {
 	return &ProductServiceImpl{
-		shopcollection: shopcollection,
+		ShopCollection: shopCollection,
 		ctx:            ctx,
 	}
 
@@ -24,7 +24,7 @@ func NewProductServiceImpl(shopcollection *mongo.Collection, ctx context.Context
 
 func (c *ProductServiceImpl) CreateCar(car *models.Car) error {
 
-	_, err := c.shopcollection.InsertOne(c.ctx, car)
+	_, err := c.ShopCollection.InsertOne(c.ctx, car)
 
 	return err
 
@@ -32,13 +32,14 @@ func (c *ProductServiceImpl) CreateCar(car *models.Car) error {
 func (c *ProductServiceImpl) GetCar(name *string) (*models.Car, error) {
 	var car *models.Car
 	query := bson.D{bson.E{Key: "name", Value: name}}
-	err := c.shopcollection.FindOne(c.ctx, query).Decode(&car)
+	err := c.ShopCollection.FindOne(c.ctx, query).Decode(&car)
 	return car, err
 
 }
 func (c *ProductServiceImpl) GetAll() ([]*models.Car, error) {
 	var cars []*models.Car
-	cursor, err := c.shopcollection.Find(c.ctx, bson.D{{}})
+
+	cursor, err := c.ShopCollection.Find(c.ctx, bson.D{{}})
 	if err != nil {
 		return nil, err
 	}
@@ -65,9 +66,9 @@ func (c *ProductServiceImpl) GetAll() ([]*models.Car, error) {
 
 }
 func (c *ProductServiceImpl) UpdateCar(car *models.Car) error {
-	filter := bson.D{bson.E{Key: "car_name", Value: car.Name}}
-	update := bson.D{bson.E{Key: "$set", Value: bson.D{bson.E{Key: "car_id", Value: car.ID}, bson.E{Key: "car_name", Value: car.Name}, bson.E{Key: "car_color", Value: car.Color}, bson.E{Key: "car_model", Value: car.Model}, bson.E{Key: "car_price", Value: car.Price}, bson.E{Key: "car_insurance", Value: car.Insurance}, bson.E{Key: "car_count", Value: car.Count}}}}
-	result, _ := c.shopcollection.UpdateOne(c.ctx, filter, update)
+	filter := bson.D{bson.E{Key: "carId", Value: car.ID}}
+	update := bson.D{bson.E{Key: "$set", Value: bson.D{bson.E{Key: "carId", Value: car.ID}, bson.E{Key: "carName", Value: car.Name}, bson.E{Key: "carColor", Value: car.Color}, bson.E{Key: "carModel", Value: car.Model}, bson.E{Key: "carPrice", Value: car.Price}, bson.E{Key: "carInsurance", Value: car.Insurance}, bson.E{Key: "carCount", Value: car.Count}}}}
+	result, _ := c.ShopCollection.UpdateOne(c.ctx, filter, update)
 	if result.MatchedCount != 1 {
 		return errors.New("no match document found for update")
 	}
@@ -75,8 +76,8 @@ func (c *ProductServiceImpl) UpdateCar(car *models.Car) error {
 
 }
 func (c *ProductServiceImpl) DeleteCar(name *string) error {
-	filter := bson.D{bson.E{Key: "car_name", Value: name}}
-	result, _ := c.shopcollection.DeleteOne(c.ctx, filter)
+	filter := bson.D{bson.E{Key: "carName", Value: name}}
+	result, _ := c.ShopCollection.DeleteOne(c.ctx, filter)
 	if result.DeletedCount != 1 {
 		return errors.New("no match document found for update")
 	}

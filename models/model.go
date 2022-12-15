@@ -7,33 +7,33 @@ import (
 )
 
 type User struct {
-	ID            primitive.ObjectID `bson:"_id"`
-	First_name    *string            `json:"first_name" validate:"required,min=2,max=100"`
-	Last_name     *string            `json:"last_name" validate:"required,min=2,max=100"`
-	Password      *string            `json:"password" validate:"required,min=6"`
-	Email         *string            `json:"email" validate:"email,required"`
-	Phone         *string            `json:"phone" validate:"required"`
-	Token         *string            `json:"token"`
-	User_type     *string            `json:"user_type" validate:"required,eq=ADMIN"`
-	Refresh_token *string            `json:"refresh_token"`
-	Created_at    time.Time          `json:"created_at"`
-	Updated_at    time.Time          `json:"updated_at"`
-	User_id       string             `json:"user_id"`
+	ID           primitive.ObjectID `bson:"_id"`
+	FirstName    *string            `json:"firstName" validate:"required,min=2,max=100"`
+	LastName     *string            `json:"lastName" validate:"required,min=2,max=100"`
+	Password     *string            `json:"password" validate:"required,min=6"`
+	Email        *string            `json:"email" validate:"required"`
+	Phone        *string            `json:"phone" validate:"required"`
+	Token        *string            `json:"token"`
+	UserType     *string            `json:"userType" validate:"required,eq=ADMIN"`
+	RefreshToken *string            `json:"refreshToken"`
+	CreatedAt    time.Time          `json:"createdAt"`
+	UpdatedAt    time.Time          `json:"updatedAt"`
+	UserId       string             `json:"userId"`
 }
 type Car struct {
-	ID        int    `json:"id"  bson:"car_id"`
-	Name      string `json:"name"  bson:"car_name"`
-	Color     string `json:"color"  bson:"car_color"`
-	Model     string `json:"model" bson:"car_model"`
-	Price     int    `json:"price" bson:"car_price"`
-	Insurance string `json:"insurance" bson:"car_insurance"`
-	Count     int    `json:"count" bson:"car_count"`
+	ID        int    `json:"id"  bson:"carId"`
+	Name      string `json:"name"  bson:"carName"`
+	Color     string `json:"color"  bson:"carColor"`
+	Model     string `json:"model" bson:"carModel"`
+	Price     int    `json:"price" bson:"carPrice"`
+	Insurance string `json:"insurance" bson:"carInsurance"`
+	Count     int    `json:"count" bson:"carCount"`
 }
 type Admin struct {
-	ID        int       `json:"id" bson:"admin_id"`
-	Username  string    `json:"username" bson:"admin_username"`
-	Password  string    `json:"password" bson:"admin_password"`
-	Role      string    `json:"role" bson:"admin_role"`
-	CreatedAt time.Time `json:"created_at" bson:"admin_createdAt"`
-	UpdatedAt time.Time `json:"updated_at" bson:"admin_updatedAt"`
+	ID        int       `json:"id" bson:"adminId"`
+	Username  string    `json:"username" bson:"adminUsername"`
+	Password  string    `json:"password" bson:"adminPassword"`
+	Role      string    `json:"role" bson:"adminRole"`
+	CreatedAt time.Time `json:"created_at" bson:"adminCreatedAt"`
+	UpdatedAt time.Time `json:"updated_at" bson:"adminUpdatedAt"`
 }

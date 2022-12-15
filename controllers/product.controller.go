@@ -27,12 +27,12 @@ func (uc *ProductController) CreateCar(ctx *gin.Context) {
 	var car models.Car
 
 	if err := ctx.ShouldBindJSON(&car); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"massage": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"massage": "product not exists"})
 		return
 
 	}
 	if err := middleware.CheckUserType(ctx, "ADMIN"); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "yo are not admin"})
 		return
 
 	}
@@ -56,9 +56,14 @@ func (uc *ProductController) GetCar(ctx *gin.Context) {
 
 }
 func (uc *ProductController) GetAll(ctx *gin.Context) {
+	// if err := middleware.CheckUserType(ctx, ""); err != nil {
+	// 	ctx.JSON(http.StatusBadRequest, gin.H{"error": "you are not exists"})
+	// 	return
+
+	// }
 	cars, err := uc.ProductService.GetAll()
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"massage": err.Error()})
+		ctx.JSON(http.StatusBadGateway, gin.H{"massage": "not exist"})
 		return
 	}
 	ctx.JSON(http.StatusOK, cars)
@@ -70,6 +75,11 @@ func (uc *ProductController) UpdateCar(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"massage": err.Error()})
 		return
 	}
+	if err := middleware.CheckUserType(ctx, "ADMIN"); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "you are not exists"})
+		return
+
+	}
 	err := uc.ProductService.UpdateCar(&car)
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"massage": err.Error()})
@@ -80,6 +90,11 @@ func (uc *ProductController) UpdateCar(ctx *gin.Context) {
 }
 func (uc *ProductController) DeleteCar(ctx *gin.Context) {
 	username := ctx.Param("name")
+	if err := middleware.CheckUserType(ctx, "ADMIN"); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "you are not exists"})
+		return
+
+	}
 	err := uc.ProductService.DeleteCar(&username)
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"massage": err.Error()})

@@ -18,24 +18,24 @@ import (
 )
 
 type UserServiceImpl struct {
-	shopcollection *mongo.Collection
+	ShopCollection *mongo.Collection
 	ctx            context.Context
 }
 
-func NewUserServiceImpl(shopcollection *mongo.Collection, ctx context.Context) UserLogin {
+func NewUserServiceImpl(shopCollection *mongo.Collection, ctx context.Context) UserLogin {
 	return &UserServiceImpl{
-		shopcollection: shopcollection,
+		ShopCollection: shopCollection,
 		ctx:            ctx,
 	}
 
 }
 
 type SignedDetails struct {
-	Email      string
-	First_name string
-	Last_name  string
-	Uid        string
-	User_type  string
+	Email     string
+	FirstName string
+	LastName  string
+	Uid       string
+	UserType  string
 	jwt.StandardClaims
 }
 
@@ -43,11 +43,11 @@ var SECRET_KEY string = os.Getenv("SECRET_KEY")
 
 func GenerateAllTokens(email string, firstName string, lastName string, userType string, uid string) (signedToken string, signedRefreshToken string, err error) {
 	claims := &SignedDetails{
-		Email:      email,
-		First_name: firstName,
-		Last_name:  lastName,
-		Uid:        uid,
-		User_type:  userType,
+		Email:     email,
+		FirstName: firstName,
+		LastName:  lastName,
+		Uid:       uid,
+		UserType:  userType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},
@@ -100,15 +100,15 @@ func (uc *UserServiceImpl) UpdateAllTokens(signedToken string, signedRefreshToke
 	var updateObj primitive.D
 	//append token and refreshtoken in update object
 	updateObj = append(updateObj, bson.E{Key: "token", Value: signedToken})
-	updateObj = append(updateObj, bson.E{Key: "refresh_token", Value: signedRefreshToken})
-	Updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-	updateObj = append(updateObj, bson.E{Key: "updated_at", Value: Updated_at})
+	updateObj = append(updateObj, bson.E{Key: "refreshToken", Value: signedRefreshToken})
+	UpdatedAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	updateObj = append(updateObj, bson.E{Key: "updatedAt", Value: UpdatedAt})
 	upsert := true
-	filter := bson.M{"user_id": userId}
+	filter := bson.M{"userId": userId}
 	opt := options.UpdateOptions{
 		Upsert: &upsert,
 	}
-	_, err := uc.shopcollection.UpdateOne(
+	_, err := uc.ShopCollection.UpdateOne(
 		ctx,
 		filter,
 		bson.D{
@@ -137,23 +137,24 @@ func VerifyPassword(userPassword string, providedPassword string) (bool, string)
 }
 
 func (uc *UserServiceImpl) CreateUser(user *models.User) error {
-	count, err := uc.shopcollection.CountDocuments(uc.ctx, bson.M{"email": user.Email})
+	count, err := uc.ShopCollection.CountDocuments(uc.ctx, bson.M{"email": user.Email})
 
 	if err != nil {
 		log.Panic(err)
 
 	}
-	count, err = uc.shopcollection.CountDocuments(uc.ctx, bson.M{"phone": user.Phone})
+	count, err = uc.ShopCollection.CountDocuments(uc.ctx, bson.M{"phone": user.Phone})
 
 	if err != nil {
 		log.Panic(err)
 
 	}
+
 	if count > 0 {
 		log.Fatal(err)
 	}
 
-	_, err = uc.shopcollection.InsertOne(uc.ctx, user)
+	_, err = uc.ShopCollection.InsertOne(uc.ctx, user)
 	return err
 
 }
@@ -161,13 +162,13 @@ func (uc *UserServiceImpl) LoginUser(user *models.User) (*models.User, error) {
 
 	var foundUser *models.User
 
-	err := uc.shopcollection.FindOne(uc.ctx, bson.M{"email": user.Email}).Decode(&foundUser)
+	err := uc.ShopCollection.FindOne(uc.ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 	if err != nil {
 		return nil, err
 	}
 
+	err = uc.ShopCollection.FindOne(uc.ctx, bson.M{"password": user.Password}).Decode(&foundUser)
 	passwordIsValid, _ := VerifyPassword(*user.Password, *foundUser.Password)
-	err = uc.shopcollection.FindOne(uc.ctx, bson.M{"password": user.Password}).Decode(&foundUser)
 
 	if passwordIsValid != true {
 
@@ -180,9 +181,9 @@ func (uc *UserServiceImpl) LoginUser(user *models.User) (*models.User, error) {
 		return nil, err
 
 	}
-	token, refreshToken, err := GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
-	uc.UpdateAllTokens(token, refreshToken, foundUser.User_id)
-	err = uc.shopcollection.FindOne(uc.ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
+	token, refreshToken, err := GenerateAllTokens(*foundUser.Email, *foundUser.FirstName, *foundUser.LastName, *foundUser.UserType, foundUser.UserId)
+	uc.UpdateAllTokens(token, refreshToken, foundUser.UserId)
+	err = uc.ShopCollection.FindOne(uc.ctx, bson.M{"userId": foundUser.UserId}).Decode(&foundUser)
 
 	if err != nil {
 		return nil, err
