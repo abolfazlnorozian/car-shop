@@ -18,21 +18,21 @@ import (
 
 var (
 	server         *gin.Engine
-	userservice    services.UserLogin
-	productservice services.Products
-	adminservice   services.Admins
+	UserService    services.UserLogin
+	ProductService services.Products
+	AdminService   services.Admins
 
-	controller        controllers.Controller
-	productcontroller controllers.ProductController
-	admincontroller   controllers.AdminControllers
+	Controller        controllers.Controller
+	ProductController controllers.ProductController
+	AdminController   controllers.AdminControllers
 
 	ctx               context.Context
-	usercollection    *mongo.Collection
-	productcollection *mongo.Collection
-	admincollection   *mongo.Collection
-	brandcollection   *mongo.Collection
+	UserCollection    *mongo.Collection
+	ProductCollection *mongo.Collection
+	AdminCollection   *mongo.Collection
+	BrandCollection   *mongo.Collection
 
-	mongoclient *mongo.Client
+	MongoClient *mongo.Client
 	err         error
 )
 
@@ -41,28 +41,28 @@ func init() {
 
 	mongoconn := options.Client().ApplyURI("mongodb://localhost:27017")
 
-	mongoclient, err := mongo.Connect(ctx, mongoconn)
+	MongoClient, err := mongo.Connect(ctx, mongoconn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = mongoclient.Ping(ctx, readpref.Primary())
+	err = MongoClient.Ping(ctx, readpref.Primary())
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("mongo connection established.")
 
-	productcollection = mongoclient.Database("logindb").Collection("products")
-	usercollection = mongoclient.Database("logindb").Collection("users")
-	admincollection = mongoclient.Database("logindb").Collection("admins")
-	brandcollection = mongoclient.Database("logindb").Collection("brands")
+	ProductCollection = MongoClient.Database("logindb").Collection("products")
+	UserCollection = MongoClient.Database("logindb").Collection("users")
+	AdminCollection = MongoClient.Database("logindb").Collection("admins")
+	BrandCollection = MongoClient.Database("logindb").Collection("brands")
 
-	userservice = services.NewUserServiceImpl(usercollection, ctx)
-	productservice = services.NewProductServiceImpl(productcollection, ctx)
-	adminservice = services.NewAdminServiceImpl(admincollection, ctx)
+	UserService = services.NewUserServiceImpl(UserCollection, ctx)
+	ProductService = services.NewProductServiceImpl(ProductCollection, ctx)
+	AdminService = services.NewAdminServiceImpl(AdminCollection, ctx)
 
-	controller = controllers.NewUserService(userservice)
-	productcontroller = controllers.NewProductService(productservice, userservice)
-	admincontroller = controllers.NewAdminService(adminservice)
+	Controller = controllers.NewUserService(UserService)
+	ProductController = controllers.NewProductService(ProductService, UserService)
+	AdminController = controllers.NewAdminService(AdminService)
 
 	server = gin.Default()
 	server.MaxMultipartMemory = 8 << 20
@@ -70,12 +70,12 @@ func init() {
 
 func main() {
 
-	defer mongoclient.Disconnect(ctx)
+	defer MongoClient.Disconnect(ctx)
 	basepath := server.Group("v1")
-	controller.UserRoutes(basepath)
+	Controller.UserRoutes(basepath)
 
-	productcontroller.ProductRoutes(basepath)
-	admincontroller.AdminRoutes(basepath)
+	ProductController.ProductRoutes(basepath)
+	AdminController.AdminRoutes(basepath)
 
 	log.Fatal(server.Run(":3000"))
 

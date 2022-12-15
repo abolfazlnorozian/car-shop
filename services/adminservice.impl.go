@@ -9,26 +9,26 @@ import (
 )
 
 type AdminServiceImpl struct {
-	shopcollection *mongo.Collection
+	ShopCollection *mongo.Collection
 	ctx            context.Context
 }
 
-func NewAdminServiceImpl(shopcollection *mongo.Collection, ctx context.Context) Admins {
+func NewAdminServiceImpl(shopCollection *mongo.Collection, ctx context.Context) Admins {
 	return &AdminServiceImpl{
-		shopcollection: shopcollection,
+		ShopCollection: shopCollection,
 		ctx:            ctx,
 	}
 
 }
 
 func (u *AdminServiceImpl) CreateAdmin(admin *models.Admin) error {
-	_, err := u.shopcollection.InsertOne(u.ctx, admin)
+	_, err := u.ShopCollection.InsertOne(u.ctx, admin)
 	return err
 
 }
 func (u *AdminServiceImpl) LoginAdmin(admin *models.Admin) error {
 
-	err := u.shopcollection.FindOne(u.ctx, bson.D{bson.E{Key: "admin_username", Value: &admin.Username}, bson.E{Key: "admin_password", Value: &admin.Password}, bson.E{Key: "admin_role", Value: &admin.Role}}).Decode(&admin)
+	err := u.ShopCollection.FindOne(u.ctx, bson.D{bson.E{Key: "adminUsername", Value: &admin.Username}, bson.E{Key: "adminPassword", Value: &admin.Password}, bson.E{Key: "adminRole", Value: &admin.Role}}).Decode(&admin)
 
 	return err
 

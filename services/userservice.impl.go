@@ -18,13 +18,13 @@ import (
 )
 
 type UserServiceImpl struct {
-	shopcollection *mongo.Collection
+	ShopCollection *mongo.Collection
 	ctx            context.Context
 }
 
-func NewUserServiceImpl(shopcollection *mongo.Collection, ctx context.Context) UserLogin {
+func NewUserServiceImpl(shopCollection *mongo.Collection, ctx context.Context) UserLogin {
 	return &UserServiceImpl{
-		shopcollection: shopcollection,
+		ShopCollection: shopCollection,
 		ctx:            ctx,
 	}
 
@@ -100,15 +100,15 @@ func (uc *UserServiceImpl) UpdateAllTokens(signedToken string, signedRefreshToke
 	var updateObj primitive.D
 	//append token and refreshtoken in update object
 	updateObj = append(updateObj, bson.E{Key: "token", Value: signedToken})
-	updateObj = append(updateObj, bson.E{Key: "refreshtoken", Value: signedRefreshToken})
-	Updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-	updateObj = append(updateObj, bson.E{Key: "updatedat", Value: Updated_at})
+	updateObj = append(updateObj, bson.E{Key: "refreshToken", Value: signedRefreshToken})
+	UpdatedAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	updateObj = append(updateObj, bson.E{Key: "updatedAt", Value: UpdatedAt})
 	upsert := true
-	filter := bson.M{"userid": userId}
+	filter := bson.M{"userId": userId}
 	opt := options.UpdateOptions{
 		Upsert: &upsert,
 	}
-	_, err := uc.shopcollection.UpdateOne(
+	_, err := uc.ShopCollection.UpdateOne(
 		ctx,
 		filter,
 		bson.D{
@@ -137,23 +137,24 @@ func VerifyPassword(userPassword string, providedPassword string) (bool, string)
 }
 
 func (uc *UserServiceImpl) CreateUser(user *models.User) error {
-	count, err := uc.shopcollection.CountDocuments(uc.ctx, bson.M{"email": user.Email})
+	count, err := uc.ShopCollection.CountDocuments(uc.ctx, bson.M{"email": user.Email})
 
 	if err != nil {
 		log.Panic(err)
 
 	}
-	count, err = uc.shopcollection.CountDocuments(uc.ctx, bson.M{"phone": user.Phone})
+	count, err = uc.ShopCollection.CountDocuments(uc.ctx, bson.M{"phone": user.Phone})
 
 	if err != nil {
 		log.Panic(err)
 
 	}
+
 	if count > 0 {
 		log.Fatal(err)
 	}
 
-	_, err = uc.shopcollection.InsertOne(uc.ctx, user)
+	_, err = uc.ShopCollection.InsertOne(uc.ctx, user)
 	return err
 
 }
@@ -161,13 +162,13 @@ func (uc *UserServiceImpl) LoginUser(user *models.User) (*models.User, error) {
 
 	var foundUser *models.User
 
-	err := uc.shopcollection.FindOne(uc.ctx, bson.M{"email": user.Email}).Decode(&foundUser)
+	err := uc.ShopCollection.FindOne(uc.ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 	if err != nil {
 		return nil, err
 	}
 
+	err = uc.ShopCollection.FindOne(uc.ctx, bson.M{"password": user.Password}).Decode(&foundUser)
 	passwordIsValid, _ := VerifyPassword(*user.Password, *foundUser.Password)
-	err = uc.shopcollection.FindOne(uc.ctx, bson.M{"password": user.Password}).Decode(&foundUser)
 
 	if passwordIsValid != true {
 
@@ -182,7 +183,7 @@ func (uc *UserServiceImpl) LoginUser(user *models.User) (*models.User, error) {
 	}
 	token, refreshToken, err := GenerateAllTokens(*foundUser.Email, *foundUser.FirstName, *foundUser.LastName, *foundUser.UserType, foundUser.UserId)
 	uc.UpdateAllTokens(token, refreshToken, foundUser.UserId)
-	err = uc.shopcollection.FindOne(uc.ctx, bson.M{"userid": foundUser.UserId}).Decode(&foundUser)
+	err = uc.ShopCollection.FindOne(uc.ctx, bson.M{"userId": foundUser.UserId}).Decode(&foundUser)
 
 	if err != nil {
 		return nil, err

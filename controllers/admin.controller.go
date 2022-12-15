@@ -19,9 +19,9 @@ type AdminControllers struct {
 	Adminservice services.Admins
 }
 
-func NewAdminService(adminservice services.Admins) AdminControllers {
+func NewAdminService(adminService services.Admins) AdminControllers {
 	return AdminControllers{
-		Adminservice: adminservice,
+		Adminservice: adminService,
 	}
 
 }
