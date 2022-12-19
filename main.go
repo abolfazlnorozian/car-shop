@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"gologin/abolfazl-api/controllers"
 
 	"gologin/abolfazl-api/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -37,9 +39,15 @@ var (
 )
 
 func init() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalln("Error loading .env file")
+	}
+	MongoDb := os.Getenv("MONGO_URL")
+
 	ctx = context.TODO()
 
-	mongoconn := options.Client().ApplyURI("mongodb://localhost:27017")
+	mongoconn := options.Client().ApplyURI(MongoDb)
 
 	MongoClient, err := mongo.Connect(ctx, mongoconn)
 	if err != nil {
@@ -69,6 +77,14 @@ func init() {
 }
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalln("error loading .env file")
+	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
 
 	defer MongoClient.Disconnect(ctx)
 	basepath := server.Group("v1")
@@ -77,6 +93,6 @@ func main() {
 	ProductController.ProductRoutes(basepath)
 	AdminController.AdminRoutes(basepath)
 
-	log.Fatal(server.Run(":3000"))
+	server.Run(":" + port)
 
 }
